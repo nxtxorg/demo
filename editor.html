@@ -42,9 +42,9 @@
 
     </style>
     <link rel="stylesheet" href="https://nxtxorg.github.io/paper-css/paper.min.css">
-    <script src="https://nxtxorg.github.io/nxtx/build/nxtx.js"></script>
-    <script src="https://nxtxorg.github.io/loading/build/loading.js"></script>
-    <script src="https://nxtxorg.github.io/debug-render-time/build/debug-render-time.js"></script>
+    <script src="https://nxtxorg.github.io/nxtx/build/nxtx.min.js"></script>
+    <script src="https://nxtxorg.github.io/loading/build/loading.min.js"></script>
+    <script src="https://nxtxorg.github.io/debug-render-time/build/debug-render-time.min.js"></script>
 </head>
 <body>
 
@@ -59,13 +59,14 @@
 \load:nxtxorg:package(layout)
 \load:nxtxorg:package(basic-formatting)
 
+
 \title(NxTx Demo)
 \set-google-font-family('Merriweather', 'mono')
 \load:document(acronyms.nxtx)
 \load:document(bibliography.nxtx)
-\define-ac(API, 'Application Programming Interface')
-\define-ac(JIT, 'Just in Time')
-\define-ac(STM, 'Software Transactional Memory')
+\ac:define(API, 'Application Programming Interface')
+\ac:define(JIT, 'Just in Time')
+\ac:define(STM, 'Software Transactional Memory')
 
 \loc-print
 
@@ -102,7 +103,7 @@ JOT had a interesting and academic approach of making a paper that specified a d
 JOT was implemented in Java, due to Java's multiplatform abilities and the available third party applications and libraries.
 The paper helps get a clearer picture of how a game engine can be designed and how a architecture can look.
 
-\bib-print
+\bib:print
 </textarea>
     </div>
     <div class="root">
