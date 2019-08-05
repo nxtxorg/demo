@@ -1,4 +1,4 @@
-<img src="https://nxtxorg.github.io/logo/NxTx-02-cropped.png"></img>
+<img src="https://nxtxorg.github.io/logo/NxTx-02-cropped.png"/>
 
 # Demo of NxTx
 
