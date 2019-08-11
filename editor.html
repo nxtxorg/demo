@@ -34,6 +34,11 @@
             display: inline-block;
             overflow-y: scroll;
         }
+        @media print {
+            .root, .flex {
+                overflow-y: visible;
+            }
+        }
         #errorlabel {
             background: rgba(244,67,54,0.6);
             color: white;
