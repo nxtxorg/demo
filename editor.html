@@ -61,6 +61,7 @@
 \load:nxtxorg:package(bibliography)
 \load:nxtxorg:package(acronyms)
 \load:nxtxorg:package(styling)
+\load:nxtxorg:package(plot)
 \load:nxtxorg:package(layout)
 \load:nxtxorg:package(basic-formatting)
 
@@ -75,6 +76,8 @@
 
 \loc-print
 
+\plot({y: [3,6,4,7,3,5,7]})
+            
 \chapter(Unity)\label(fsharp-unity-development)
 \section(Unity Extension)
 As mentioned in \Ref(fsharp-unity-development), it was noticed that the participants had problems remembering to press compile in F# in the Unity editor. A solution to this could be automatically detecting if the F# files have been changed when focusing the Unity editor. If any changes are detected, the compiler could be invoked. A problem with this is that the hooks in the Unity \ac(API) only allows for reacting to changes to files in the \text:tt(Assets)-folder.
