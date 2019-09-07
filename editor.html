@@ -1,161 +1,53 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Your nxtx document</title>
-    <style>
-
-        html, body {
-            padding: 0;
-            height: 100%;
-        }
-        a {
-            color: #1A237E;
-            word-break: break-all;
-            text-decoration: none;
-        }
-        textarea {
-            padding: 5px;
-            width: calc(100% - 12px);
-            height: 100%;
-            display: inline-block;
-        }
-        .textarea {
-            margin: 20px 30px;
-            flex: 45%;
-        }
-        .flex {
-            display: flex;
-            height: 100%;
-            overflow-y: scroll;
-        }
-        .root {
-            flex: 55%;
-            display: inline-block;
-            overflow-y: scroll;
-        }
-        @media print {
-            .root, .flex {
-                overflow-y: visible;
-            }
-        }
-        #errorlabel {
-            background: rgba(244,67,54,0.6);
-            color: white;
-            font-family: monospace;
-        }
-
-    </style>
-    <link rel="stylesheet" href="https://nxtxorg.github.io/paper-css/paper.min.css">
-    <script src="https://nxtxorg.github.io/nxtx/build/nxtx.min.js"></script>
-    <script src="https://nxtxorg.github.io/loading/build/loading.min.js"></script>
-    <script src="https://nxtxorg.github.io/debug-render-time/build/debug-render-time.min.js"></script>
-</head>
-<body>
-
-<div class="flex">
-    <div class="textarea no-print">
-        <textarea id="code">
 
 \load:nxtxorg:package(list-of-contents)
 \load:nxtxorg:package(bibliography)
 \load:nxtxorg:package(acronyms)
 \load:nxtxorg:package(styling)
-\load:nxtxorg:package(plot)
 \load:nxtxorg:package(layout)
+\load:nxtxorg:package(plot)
 \load:nxtxorg:package(basic-formatting)
 
 
 \title(NxTx Demo)
 \set-google-font-family('Merriweather', 'mono')
-\load:document(acronyms.nxtx)
-\load:document(bibliography.nxtx)
-\ac:define(API, 'Application Programming Interface')
-\ac:define(JIT, 'Just in Time')
-\ac:define(STM, 'Software Transactional Memory')
+\ac:define(AST, 'Abstract Syntax Tree')
+\ac:define(DOM, 'Document Object Model')
 
 \loc-print
 
-\plot({y: [3,6,4,7,3,5,7]})
-            
-\chapter(Unity)\label(fsharp-unity-development)
-\section(Unity Extension)
-As mentioned in \Ref(fsharp-unity-development), it was noticed that the participants had problems remembering to press compile in F# in the Unity editor. A solution to this could be automatically detecting if the F# files have been changed when focusing the Unity editor. If any changes are detected, the compiler could be invoked. A problem with this is that the hooks in the Unity \ac(API) only allows for reacting to changes to files in the \text:tt(Assets)-folder.
-An alternative to detecting the file changes when the Unity editor is focused, is detecting the changes when the developers enters play-mode. This is also available to hook onto using the Unity \ac(API) and does not require the files to be placed in the \text:it(Assets)-folder.
+\chapter(Two-pass rendering)
+NxTx utilises two-pass rendering to provide enough flexibility to support needed things, such as list of contents. 
 
-\section(Benchmarking the Old .NET Framework Runtime)\label(sec:macrobench)
-It would be interesting to see how the old Windows-only .NET Framework runtime performs compared to \text:tt(mono) and the new, cross-platform \text:tt(dotnet) runtime. A result that could be interesting to see is whether \text:tt(mono) is slower than the old, windows-only .NET runtime. If it is, then it seems counter-intuitive to base the game engine's scripting runtime on it, though this was most likely because of \text:tt(mono) being cross-platform and open-source, which the old .NET runtime was not. The new \text:tt(dotnet) runtime is both cross-platform and open-source, released under MIT license.
+\section(First pass)
+First pass executes the preprocessors invoked in the document source code. The return values from these preprocessors replaces the invocation node if no command is registered to the same name.
 
-\section(Investigation on Start-Up Time)\label(sec:futurework-startup-time)
-As explained in \ref(sec:macrobench), the macrobenchmark suffered under an extensive startup time. Why exactly this is so extensive would be an interesting find, beyond the guess that it is just \ac(JIT) warm-up. Especially so since the startup is slower in C# than it is in F#. One way to approach this would be to utilise Unity's Profiler tool, shown in \ref(fig:unity-profiler).
+\section(Second pass)
+Second pass renders the nodes in document \ac(AST). \ac(DOM) elements, such as \text:tt(#text) \text:tt(img) nodes, are placed directly on the \dquote(paper) and commands are executed and their return values are then placed in the document. The NxTx rendering engine automatically detects when the \dquote(paper) has overflown and insert a new piece a paper, and moves the element that is out of bounds to the new page.
 
-\chapter(More Unity)
-\section(Language Support in Unity)
+\chapter(Concurrency)
+All preprocessors that are in the same paragraph are executed in concurrently using \text:tt(Promise.all). The same applies to all commands used in the same paragraph. This is useful for quickly loading the packages needed for a document, as all the packages are fetched at the same time insted of one by one.
 
-There have been several projects which aimed to add another language as the gameplay programming language to Unity, such as Arcadia and Casanova \cite(arcadia:github, casanova-autocompile).
+\chapter(Commands)
+Commands are executed recursively; if they return a command node (or an array containing command nodes), those nodes are executed as well and the return value replaces the executed node. Commands typically return a string or a \ac(DOM) element, but can also return arrays of these.
 
-These two projects have two different approaches to adding a new gameplay language.
+\section(Syntax)
+In NxTx, commands are invoked similarly to LaTeX; starting with a backslash (\text:tt(\)) followed by the name of the command and then the input arguments, enclosed in parentheses.
 
-Casanova is both declarative and procedural language, for writing gameplay code for Unity games \cite(designing-casanova). It is transpiled to C# for use with Unity, but one of the goals of the language is to have F# as a compile target \cite(casanova-autocompile, casanova-specs). Casanova is a much more high level language than most of the other gameplay languages used in free-to-play game engines. The language describes entities and the rules these entities follow.
+Example: \text:tt("\text:tt('Hello World')")
 
-Arcadia adds Clojure support to Unity via Clojure CLR: \dquote(a native implementation of Clojure on the Common Language Runtime)\footnote(https://clojure.org/about/clojureclr). Clojure is integrated as an interpreted language on top of Unity. This means the code can be modified while a game is running in the Unityeditor. It is mostly functional (and side-effect free), but has some specific functions that affect the state of the game.
-
-One of the nice features of Clojure is \ac(STM), which is a way of handling concurrency. It is inspired from database transactions and a variant of transactional memory.
-While there is no official page that states Clojure CLR has support for \ac(STM) there is some evidence, such as the \ac(STM) tests on their github page\footnote(https://github.com/clojure/clojure-clr/blob/master/Clojure/Clojure.Source/clojure/samples/stm/). Arcadia and \ac(STM) were explored in a previous report, and the find was that \ac(STM) was not the go-to method of managing memory in Unity \cite(voresrapport).
+The NxTx language does not contain syntax for defining commands, nor is it planned. Instead ES/JS is used, as that seemed more fitting than the (La)TeX approach. JavaScript is a (debately) nice, turing complete programming language that runs (fast) in the browser. Why not use this fitting tool?
 
 
-\section(Game development tools)
-In the academic, there has been made a few game engines.
-One of those are JOT, JOT is a specialised modular multipurpose massively multiplayer online game engine \cite(amador2014jot).
-JOT had a interesting and academic approach of making a paper that specified a design and a architecture for the game engine.
-JOT was implemented in Java, due to Java's multiplatform abilities and the available third party applications and libraries.
-The paper helps get a clearer picture of how a game engine can be designed and how a architecture can look.
+\chapter(Preprocessors)
+Preprocessors are invoked in exactly the same way as commands. Both a command and a preprocessor can be registered to the same name. The difference between the two is that preprocessors are executed during the first pass of rendering a document, and commands in the second. The return value from preprocessors are only used if no command is registered to the same name, and is not rendered straight away, but instead replaces the invocation node in the AST.
 
-\bib:print
-</textarea>
-    </div>
-    <div class="root">
-        <span id="paper" class="A4 nxtx-root"></span>
-    </div>
-</div>
 
-<script defer>
-    const error = document.getElementById('errorlabel');
-    const code = document.getElementById('code');
-    const paper = document.getElementById('paper');
+\chapter(Packages)
+NxTx comes as a barebones parser and renderer, the rest is up to packages! Packages can contain a number of preprocessors and commands that extend the rendering capabilities of NxTx. This architecture allows for only downloading/using the packages needed to render your document. 
+Packages  
 
-    const tryRender = async codeValue => {
-        try {
-            await nxtx.render(codeValue, paper);
-            error.innerText = '';
-        } catch (e) {
-            // console.error(`Syntax error at line ${e.location.start.line} column ${e.location.start.column}:\n${e.message}`);
-            // if (error.location) error.innerText = `Syntax error at line ${e.location.start.line} column ${e.location.start.column}:\n${e.message}`;
-        }
-    };
+\section(Package demos)
+Here are some demos of some packages
+\subsection(Plot package)
+\plot({y: [3,5,7,4,6,3,7,5,6,3,2,9,7,3,8,5,2,4,3,6,4,1]})
 
-    let renderScheduled = false;
-    let unrenderedInputs = 0;
-    const flush = async () => {
-        const codeValue = code.value;
-        unrenderedInputs = 0;
-        console.clear();
-        await tryRender(codeValue);
-        renderScheduled = false;
-        if (unrenderedInputs) schedule();
-    };
-    const schedule = () => {
-        if (!renderScheduled) {
-            renderScheduled = true;
-            setTimeout(flush, 600);
-        }
-    };
-
-    const input = () => ++unrenderedInputs && schedule();
-
-    // editor.on('change', input);
-    code.addEventListener('input', input);
-    tryRender(code.value);
-</script>
-</body>
-</html>
