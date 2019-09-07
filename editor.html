@@ -1,3 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Your nxtx document</title>
+    <style>
+
+        html, body {
+            padding: 0;
+            height: 100%;
+        }
+        a {
+            color: #1A237E;
+            word-break: break-all;
+            text-decoration: none;
+        }
+        textarea {
+            padding: 5px;
+            width: calc(100% - 12px);
+            height: 100%;
+            display: inline-block;
+        }
+        .textarea {
+            margin: 20px 30px;
+            flex: 45%;
+        }
+        .flex {
+            display: flex;
+            height: 100%;
+            overflow-y: scroll;
+        }
+        .root {
+            flex: 55%;
+            display: inline-block;
+            overflow-y: scroll;
+        }
+        @media print {
+            .root, .flex {
+                overflow-y: visible;
+            }
+        }
+        #errorlabel {
+            background: rgba(244,67,54,0.6);
+            color: white;
+            font-family: monospace;
+        }
+
+    </style>
+    <link rel="stylesheet" href="https://nxtxorg.github.io/paper-css/paper.min.css">
+    <script src="https://nxtxorg.github.io/nxtx/build/nxtx.min.js"></script>
+    <script src="https://nxtxorg.github.io/loading/build/loading.min.js"></script>
+    <script src="https://nxtxorg.github.io/debug-render-time/build/debug-render-time.min.js"></script>
+</head>
+<body>
+
+<div class="flex">
+    <div class="textarea no-print">
+        <textarea id="code">
+
 
 \load:nxtxorg:package(list-of-contents)
 \load:nxtxorg:package(bibliography)
@@ -51,3 +110,51 @@ Here are some demos of some packages
 \subsection(Plot package)
 \plot({y: [3,5,7,4,6,3,7,5,6,3,2,9,7,3,8,5,2,4,3,6,4,1]})
 
+
+</textarea>
+    </div>
+    <div class="root">
+        <span id="paper" class="A4 nxtx-root"></span>
+    </div>
+</div>
+
+<script defer>
+    const error = document.getElementById('errorlabel');
+    const code = document.getElementById('code');
+    const paper = document.getElementById('paper');
+
+    const tryRender = async codeValue => {
+        try {
+            await nxtx.render(codeValue, paper);
+            error.innerText = '';
+        } catch (e) {
+            // console.error(`Syntax error at line ${e.location.start.line} column ${e.location.start.column}:\n${e.message}`);
+            // if (error.location) error.innerText = `Syntax error at line ${e.location.start.line} column ${e.location.start.column}:\n${e.message}`;
+        }
+    };
+
+    let renderScheduled = false;
+    let unrenderedInputs = 0;
+    const flush = async () => {
+        const codeValue = code.value;
+        unrenderedInputs = 0;
+        console.clear();
+        await tryRender(codeValue);
+        renderScheduled = false;
+        if (unrenderedInputs) schedule();
+    };
+    const schedule = () => {
+        if (!renderScheduled) {
+            renderScheduled = true;
+            setTimeout(flush, 600);
+        }
+    };
+
+    const input = () => ++unrenderedInputs && schedule();
+
+    // editor.on('change', input);
+    code.addEventListener('input', input);
+    tryRender(code.value);
+</script>
+</body>
+</html>
